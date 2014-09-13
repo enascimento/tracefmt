@@ -1,0 +1,49 @@
+% =============================================================================
+
+a trace is a sequence of samples
+
+a container can be used to store one or more traces, representing either an
+entire or partial data set (i.e., a given container might store a subset of 
+traces in the data set)
+
+the combination of all samples within all traces is termed the data, which
+can be thought of as a sequence.  if there are n samples and t traces, st. 
+s_{i,j} is the j-th sample from the i-th trace, a container organises the 
+data in one of two ways: reading left-to-right and top-to-bottom these are
+
+- trace-major 
+  \[
+  s_{  0,  0}, s_{  0,  1}, \ldots, s_{  0,n-1}
+  s_{  1,  0}, s_{  1,  1}, \ldots, s_{  1,n-1}
+  \vdots                    \ddots  \vdots
+  s_{t-1,  0}, s_{t-1,  1}, \ldots, s_{t-1,n-1}
+  \]
+- sample-major
+  \[
+  s_{  0,  0}, s_{  1,  0}, \ldots, s_{t-1,  0}
+  s_{  0,  1}, s_{  1,  1}, \ldots, s_{t-1,  1}
+  \vdots                    \ddots  \vdots
+  s_{  0,n-1}, s_{  1,n-1}, \ldots, s_{t-1,n-1}
+  \]
+
+the samples can be dense or sparse, st. each s_{i,j} is either
+
+- a sample value (wrt. y-axis) whose offset along the x-axis is implicit 
+  (i.e., a function of $j$ and an axis definition),
+- a sample including both a value {\em and} an {\em explicit} offset along 
+  the x-axis (i.e., irrespective of $j$).
+
+a container can (optionally) be identified (e.g., with a timestamp), and
+include a checksum (wrt. to the sample data itself) 
+
+% =============================================================================
+
+use-cases
+
+- power analysis traces
+
+- execution timings (e.g., for a cache-based attack)
+
+- network traffic capture
+
+% =============================================================================
