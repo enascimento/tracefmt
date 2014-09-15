@@ -1,30 +1,66 @@
+\documentclass[10pt,a4paper]{llncs}
+
+\title{{\tt tracefmt}: a standard container format for side-channel data sets}
+\author{J. Longo Galea \and L. Mather \and D. Page}
+\institute{
+Department of Computer Science, University of Bristol,\\
+Merchant Venturers Building, Woodland Road,\\
+Bristol, BS8 1UB, United Kingdom.\\
+\email{\{Jake.Longo,Luke.Mather,Daniel.Page\}@bristol.ac.uk}
+}
+
+\begin{document}
+
+\maketitle
+
 % =============================================================================
 
-a trace is a sequence of samples
+In line with research funding bodies elsewhere, the UK-based EPSRC has clear 
+policies\footnote{
+\url{http://www.epsrc.ac.uk/about/standards/researchdata/}
+} regarding research data, e.g., that ``publicly funded research data should 
+generally be made as widely and freely available as possible''.  Especially
+in topics relating to information security, where openness is arguably even 
+more important, such policies make perfect sense.  However, without suitable
+infrastructure, realising them can be problematic.  {\tt tracefmt} aims to 
+address this problem within the field of (experimental) side-channel attack
+by providing a standard, platform and application independent container 
+format for on-disk storage of side-channel data sets.
 
-a container can be used to store one or more traces, representing either an
-entire or partial data set (i.e., a given container might store a subset of 
-traces in the data set)
+To maximise uptake, the underlying design ethos is to favour portability and
+ease of use over efficiency.  With this in mind, the specification makes use
+of the {\sf ProtocolBuffers}\footnote{
+\url{https://developers.google.com/protocol-buffers/}
+} system.  On one hand, using {\sf ProtocolBuffers} means the {\tt tracefmt} 
+specification is easy to understand and maintain, plus it allows automatic 
+generation of a consistent implementation for {\em any} programming language.  
+On the other hand, however, there {\e are} disadvantages wrt. efficiency: the
+{\sf ProtocolBuffers} documentation even warns it is ``not designed to handle 
+large messages'', and the tag-based binary format implies a significant 
+storage overhead versus a more bespoke solution.  Most disadvantages do not
+seem absolute, however: treating the {\tt tracefmt} specification as a 
+specification only, it is of course possible to realise a specifically
+ optimised non-{\sf ProtocolBuffers} implementation (e.g., to allow random 
+rather than monolithic access to the data).  Also note that the focus is 
+on-disk storage, not {\em necessarily} in-memory data structure.  While a
+{\sf ProtocolBuffers}-based implementation will parse input to form a data
+structure, this might be unsuitable for computationally intensive processing
+and hence require a second translation step; we deem this a reasonable caveat
+given the overarching goal.
 
-the combination of all samples within all traces is termed the data, which
-can be thought of as a sequence.  if there are n samples and t traces, st. 
-s_{i,j} is the j-th sample from the i-th trace, a container organises the 
-data in one of two ways: reading left-to-right and top-to-bottom these are
+\paragraph{Note.} 
+This document and the associated specification are both {\em very} much in
+development, rather than something you can use immediately; we welcome any
+form of comment, suggestion or contribution.
 
-- trace-major 
-  \[
-  s_{  0,  0}, s_{  0,  1}, \ldots, s_{  0,n-1}
-  s_{  1,  0}, s_{  1,  1}, \ldots, s_{  1,n-1}
-  \vdots                    \ddots  \vdots
-  s_{t-1,  0}, s_{t-1,  1}, \ldots, s_{t-1,n-1}
-  \]
-- sample-major
-  \[
-  s_{  0,  0}, s_{  1,  0}, \ldots, s_{t-1,  0}
-  s_{  0,  1}, s_{  1,  1}, \ldots, s_{t-1,  1}
-  \vdots                    \ddots  \vdots
-  s_{  0,n-1}, s_{  1,n-1}, \ldots, s_{t-1,n-1}
-  \]
+% =============================================================================
+
+A trace 
+\[
+T = < T_0, T_1, \ldots, T_{l-1} >
+\]
+is an $l$-element sequence of samples, with $T_i$ denoting the $i$-th such
+element
 
 the samples can be dense or sparse, st. each s_{i,j} is either
 
@@ -33,8 +69,37 @@ the samples can be dense or sparse, st. each s_{i,j} is either
 - a sample including both a value {\em and} an {\em explicit} offset along 
   the x-axis (i.e., irrespective of $j$).
 
-a container can (optionally) be identified (e.g., with a timestamp), and
-include a checksum (wrt. to the sample data itself) 
+A container can be used to store one or more traces, representing either an
+entire or partial data set (i.e., a given container might store a subset of 
+traces in the data set).  A container storing $n$ traces, where $T_{i,j}$ 
+denotes the $i$-th sample from the $j$-th trace, organises them in one of 
+two ways: reading left-to-right and top-to-bottom these are
+
+\begin{enumerate}
+\item trace-major 
+      \[
+      T_{  0,  0}, T_{  1,  0}, \ldots, T_{l-1,  0}
+      T_{  0,  1}, T_{  1,  1}, \ldots, T_{l-1,  1}
+      \vdots                    \ddots  \vdots
+      T_{  0,n-1}, T_{  1,n-1}, \ldots, T_{l-1,n-1}
+      \]
+\item sample-major
+      \[
+      T_{  0,  0}, T_{  0,  1}, \ldots, T_{  0,n-1}
+      T_{  0,  0}, T_{  0,  1}, \ldots, T_{  1,n-1}
+      \vdots                    \ddots  \vdots
+      T_{l-1,  0}, T_{l-1,  1}, \ldots, T_{l-1,n-1}
+      \]
+\end{enumerate}
+
+\item A container can (optionally) include user-defined meta-data, specified
+      via a database of key-value tuples; an additional index can assoicate 
+      each key-value with one of the traces.  
+
+      The unstructured nature of the meta-data forms a compromise: 
+
+\item A container can (optionally) be identified (e.g., using a timestamp),  
+      and include a checksum (on the sample data) .
 
 % =============================================================================
 
@@ -47,3 +112,5 @@ use-cases
 - network traffic capture
 
 % =============================================================================
+
+\end{document}
