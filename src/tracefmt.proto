@@ -1,68 +1,65 @@
-enum Major {
-  TRACE  = 0;
-  SAMPLE = 1;
-}
-
-enum Format {
-  DENSE  = 0;
-  SPARSE = 1;
-}
-
 enum Type {
-  BOOL   = 1;
-  INT    = 2;
-  FLOAT  = 3;
-  DOUBLE = 4;
+  INT    = 1;
+  FLOAT  = 2;
+  DOUBLE = 3;
 }
 
 enum Unit {
   SECOND = 1;
 }
 
-message Tuple {
-  required string   key;
-  required string value;
-  optional int    index;
+enum Format {
+  DENSE  = 1;
+  SPARSE = 2;
+}
+
+enum Order  {
+  TRACE  = 1;
+  SAMPLE = 2;
+}
+
+message Value {
+  oneof data {
+    int    i = 1;
+    float  f = 2;
+    double d = 3;
+  }
+}
+
+message Sample {
+  repeated Value   value = 1;
+  optional int     index = 2;
+}
+
+message Meta {
+  required bytes     key = 1;
+  required bytes   value = 2;
+  optional int     index = 3;
 }
 
 message Axis {
-  required Type    type;
-  required Unit    unit;
+  required Type     type = 1;
+  required Unit     unit = 2;
 
-  optional float    min;
-  optional float    max;
-  optional float offset;
-}
-
-message Data {
-  oneof data {
-    bool   b;
-    int    i;
-    float  f;
-    double d;
-  }
-
-  optional index;
+  optional float     min = 3;
+  optional float     max = 4;
+  optional float  offset = 5;
 }
 
 message Container {
   required int    version_major =  1;
   required int    version_minor =  2;
 
-  optional bytes  id            =  3;
-  optional bytes  checksum      =  4; 
+  required int    trace_count   =  3;
+  required int    trace_length  =  4;
+  optional int    trace_offset  =  5;
 
-  required int    index_total   =  5;
-  optional int    index_start   =  6;
-  optional int    index_end     =  7;  
+  required Format format        =  6;
+  required Order  order         =  7;
+  repeated Meta   meta          =  8;
 
-  repeated Tuple  meta          =  8;
+  required Axis   axis_x        =  9;
+  repeated Axis   axis_y        = 10;
 
-  required Major  major         =  9;
-  required Format format        = 10;
-
-  required Axis   axis_x        = 11;
-  repeated Axis   axis_y        = 12;
-
-  repeated Data   data          = 13;
+  repeated Sample samples       = 11;
 }
