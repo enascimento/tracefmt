@@ -15,8 +15,10 @@ Bristol, BS8 1UB, United Kingdom.\\
 
 % =============================================================================
 
-In line with research funding bodies elsewhere, the UK-based EPSRC has clear 
-policies\footnote{
+In line with research funding bodies elsewhere, and reflecting elements of
+less formal initiatives such as the Science Code Manifesto\footnote{
+\url{http://sciencecodemanifesto.org/}
+} the UK-based EPSRC has clear policies\footnote{
 \url{http://www.epsrc.ac.uk/about/standards/researchdata/}
 } regarding research data, e.g., that ``publicly funded research data should 
 generally be made as widely and freely available as possible''.  Especially
@@ -28,88 +30,150 @@ by providing a standard, platform and application independent container
 format for on-disk storage of side-channel data sets.
 
 To maximise uptake, the underlying design ethos is to favour portability and
-ease of use over efficiency.  With this in mind, the specification makes use
-of the {\sf ProtocolBuffers}\footnote{
+ease of use over efficiency.  With this in mind, and though numerous options
+for object serialisation exist\footnote{
+\url{http://en.wikipedia.org/wiki/Serialization} gives a reasonable overview,
+including, for example, the {\tt pickle} module for {\sf Python}.
+}, the specification initially\footnote{
+We say {\em initially} on purpose, since the specification and implementation
+technology are somewhat orthogonal: we opted for {\sf ProtocolBuffers} mainly
+for simplicity, and because we had some experience with it, but alternatives
+such as {\sf Thrift} (see \url{http://thrift.apache.org/}) might be more
+suitable in the longer term.
+} uses the {\sf ProtocolBuffers}\footnote{
 \url{https://developers.google.com/protocol-buffers/}
 } system.  On one hand, using {\sf ProtocolBuffers} means the {\tt tracefmt} 
 specification is easy to understand and maintain, plus it allows automatic 
 generation of a consistent implementation for {\em any} programming language.  
-On the other hand, however, there {\e are} disadvantages wrt. efficiency: the
-{\sf ProtocolBuffers} documentation even warns it is ``not designed to handle 
-large messages'', and the tag-based binary format implies a significant 
-storage overhead versus a more bespoke solution.  Most disadvantages do not
-seem absolute, however: treating the {\tt tracefmt} specification as a 
-specification only, it is of course possible to realise a specifically
- optimised non-{\sf ProtocolBuffers} implementation (e.g., to allow random 
-rather than monolithic access to the data).  Also note that the focus is 
-on-disk storage, not {\em necessarily} in-memory data structure.  While a
-{\sf ProtocolBuffers}-based implementation will parse input to form a data
-structure, this might be unsuitable for computationally intensive processing
-and hence require a second translation step; we deem this a reasonable caveat
-given the overarching goal.
+On the other hand, however, there {\em are} disadvantages wrt. efficiency: 
+the {\sf ProtocolBuffers} documentation even warns it is ``not designed to 
+handle large messages'', and the tag-based binary format clearly implies a 
+significant storage overhead versus a more bespoke solution.  Most similar
+disadvantages do not seem absolute, however: treating the {\tt tracefmt} 
+specification as a specification only, it is of course possible to realise 
+a specifically optimised non-{\sf ProtocolBuffers} implementation (e.g., to 
+allow random rather than monolithic access to the data).  Also note that the 
+focus is on-disk storage, not {\em necessarily} an in-memory data structure.  
+While a {\sf ProtocolBuffers}-based implementation will parse input to form 
+a data structure, this might be unsuitable for computationally intensive 
+processing and hence require a second translation step; we deem this a 
+reasonable caveat given the overarching goal.
 
 \paragraph{Note.} 
-This document and the associated specification are both {\em very} much in
-development, rather than something you can use immediately; we welcome any
-form of comment, suggestion or contribution.
+{\tt tracefmt} started life as an internal attempt, with the University of 
+Bristol, to unify our own data sets.  The {\tt tracefmt} specification, and
+associated documentation, are in development rather than something you can 
+use immediately; we welcome any form of comment, suggestion or contribution.
 
 % =============================================================================
 
-A trace 
-\[
-T = < T_0, T_1, \ldots, T_{l-1} >
-\]
-is an $l$-element sequence of samples, with $T_i$ denoting the $i$-th such
-element
-
-the samples can be dense or sparse, st. each s_{i,j} is either
-
-- a sample value (wrt. y-axis) whose offset along the x-axis is implicit 
-  (i.e., a function of $j$ and an axis definition),
-- a sample including both a value {\em and} an {\em explicit} offset along 
-  the x-axis (i.e., irrespective of $j$).
-
-A container can be used to store one or more traces, representing either an
-entire or partial data set (i.e., a given container might store a subset of 
-traces in the data set).  A container storing $n$ traces, where $T_{i,j}$ 
-denotes the $i$-th sample from the $j$-th trace, organises them in one of 
-two ways: reading left-to-right and top-to-bottom these are
+One can imagine various approaches to specification design, including (at
+least) the following:
 
 \begin{enumerate}
-\item trace-major 
-      \[
-      T_{  0,  0}, T_{  1,  0}, \ldots, T_{l-1,  0}
-      T_{  0,  1}, T_{  1,  1}, \ldots, T_{l-1,  1}
-      \vdots                    \ddots  \vdots
-      T_{  0,n-1}, T_{  1,n-1}, \ldots, T_{l-1,n-1}
-      \]
-\item sample-major
-      \[
-      T_{  0,  0}, T_{  0,  1}, \ldots, T_{  0,n-1}
-      T_{  0,  0}, T_{  0,  1}, \ldots, T_{  1,n-1}
-      \vdots                    \ddots  \vdots
-      T_{l-1,  0}, T_{l-1,  1}, \ldots, T_{l-1,n-1}
-      \]
+\item write multiple specifications, one for each use-case,
+      or
+\item write a single specification, attempting to capture every possible 
+      use-case, then either
+
+      \begin{enumerate}
+      \item relying on an automatically generated parser implementation 
+            derived from a (relatively) complex specification,
+      \item supporting some form of extensibility in a (relatively) simple
+            specification but requiring the user to manually parse any such 
+            extensions,
+      \end{enumerate}
 \end{enumerate}
 
-\item A container can (optionally) include user-defined meta-data, specified
-      via a database of key-value tuples; an additional index can associate 
-      each key-value with one of the traces.  
+\noindent
+The first approach is clearly disadvantageous wrt. maintainability, with a
+net result not much better than the status quo.  Given it seems optimistic 
+to assume {\em every} use-case can be satisfactorily predicted {\em plus} 
+then captured without undue complexity, we opted instead for a simple 
+specification that allows a simple form of extensibility.
 
-      The unstructured nature of the meta-data forms a compromise: 
+% -----------------------------------------------------------------------------
 
-\item A container can (optionally) be identified (e.g., using a timestamp),  
-      and include a checksum (on the sample data) .
+% requirements
+% installation
+% file extension
+
+% -----------------------------------------------------------------------------
+
+\begin{itemize}
+\item A trace 
+      \[
+      T = \langle T_0, T_1, \ldots, T_{n-1} \rangle
+      \]
+      is an $l$-element sequence of samples, with $T_i$ denoting the $i$-th 
+      such element; the index $i$ is a measure of time.
+\item A container can store $l \geq 1$ traces, representing an entire or a
+      partial data set; $\delta$ specifies the offset of said traces within 
+      a data set of $\lamba$ in total.  Each trace is padded, if necessary, 
+      meaning each one includes the same number (namely $n$) of samples.
+\item A container uses either dense or sparse sample format.  As such, it 
+      stores either
+
+      \begin{enumerate}      
+      \item raw sample values (wrt. the y-axis) each of whose offset along 
+            the x-axis is implicit (i.e., a function of $i$ wrt. an axis 
+            definition),
+            or
+      \item raw sample values {\em plus} explicit associated offsets along 
+            the x-axis (i.e., irrespective of $i$)
+      \end{enumerate}      
+
+\item Each sample is potentially of composite type: given ${\mathcal T}$, a
+      set of primitive types, depending on container representation samples
+      are represented using either an $m$-element or $(m+1)$-element tuple
+      \[
+      T_i \in \left\{
+              \begin{array}{c@{\;}c@{\;}cl}
+              {\mathcal T}^m &                     & \mbox{for a dense  container} \\
+              {\mathcal T}^m &\times& {\mathcal Z} & \mbox{for a sparse container} \\
+              \end{array}
+              \right.
+      \]
+\item A container organises samples in one of two ways.  Letting $T_{i,j}$ 
+      denote some $i$-th sample from a $j$-th trace, for $0 \leq i < n$ and 
+      $0 \leq j < l$, these are:
+
+      \begin{enumerate}
+      \item trace-major 
+            \[
+            S = \langle T_{  0,  0}, T_{  1,  0}, \ldots, T_{n-1,  0},
+                        T_{  0,  1}, T_{  1,  1}, \ldots, T_{n-1,  1},
+                                                  \ldots,
+                        T_{  0,l-1}, T_{  1,l-1}, \ldots, T_{n-1,l-1} \rangle ,
+            \]
+            or
+      \item sample-major
+            \[
+            S = \langle T_{  0,  0}, T_{  0,  1}, \ldots, T_{  0,l-1},
+                        T_{  1,  0}, T_{  1,  1}, \ldots, T_{  1,l-1},
+                                                  \ldots,
+                        T_{n-1,  0}, T_{n-1,  1}, \ldots, T_{n-1,l-1} \rangle .
+            \]
+      \end{enumerate}
+
+      \noindent
+      That is, $T_{i,j}$ and $T_{i+1,j}$ (resp. $T_{i,j+1}$) are separated 
+      by a stride of either $1$ or $n$ (resp. of $l$ or $1$): within the 
+      sequence $S$, $T_{i,j} = S[ i + j \cdot n ]$ (resp. $T_{i,j} = S[ j 
+      + i \cdot l ]$).
+\item A container can optionally include user-defined meta-data, specified
+      using a database of key-value tuples; an index can associate each 
+      key-value with one of the traces.  Since both key and value are 
+      unstructured byte sequences, they support extensibility but must be 
+      managed entirely by the user.
+\end{itemize}
 
 % =============================================================================
 
-use-cases
-
-- power analysis traces
-
-- execution timings (e.g., for a cache-based attack)
-
-- network traffic capture
+% example use-cases
+% - power analysis traces
+% - execution timings (e.g., for a cache-based attack)
+% - network traffic capture
 
 % =============================================================================
 
