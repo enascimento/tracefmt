@@ -15,6 +15,8 @@ Bristol, BS8 1UB, United Kingdom.\\
 
 % =============================================================================
 
+\section{Background and motivation}
+
 In line with research funding bodies elsewhere, and reflecting elements of
 less formal initiatives such as the Science Code Manifesto\footnote{
 \url{http://sciencecodemanifesto.org/}
@@ -67,8 +69,10 @@ use immediately; we welcome any form of comment, suggestion or contribution.
 
 % =============================================================================
 
-One can imagine various approaches to specification design, including (at
-least) the following:
+\section{Specification design}
+
+One can imagine various different design approaches, including (at least) 
+the following:
 
 \begin{enumerate}
 \item write multiple specifications, one for each use-case,
@@ -86,19 +90,23 @@ least) the following:
 \end{enumerate}
 
 \noindent
-The first approach is clearly disadvantageous wrt. maintainability, with a
-net result not much better than the status quo.  Given it seems optimistic 
-to assume {\em every} use-case can be satisfactorily predicted {\em plus} 
-then captured without undue complexity, we opted instead for a simple 
-specification that allows a simple form of extensibility.
+Selection between such approaches is clearly a trade-off between associated
+advantages and disadvantages.  For example, the first seems disadvantageous 
+wrt. maintainability, with a net result not much better than the status quo,
+and the second seems optimistic in terms of predicting and capturing every 
+possibility without undue complexity.  As a compromise, we instead opted for 
+a single, simple specification which allows a simple form of extensibility.  
+The following (sub-)sections we describe the specification first abstractly 
+and {\em then}\footnote{
+The motivation for this $2$-step description is to a) stress the separation
+of specification from implementation, and b) avoid cluttering the abstract
+high-level description (which focuses on concepts) with syntax relating to 
+the implementation.
+} concretely wrt. the implementation in {\sf ProtocolBuffers}.
 
 % -----------------------------------------------------------------------------
 
-% requirements
-% installation
-% file extension
-
-% -----------------------------------------------------------------------------
+\subsection{Abstract}
 
 \begin{itemize}
 \item A trace 
@@ -109,7 +117,7 @@ specification that allows a simple form of extensibility.
       such element; the index $i$ is a measure of time.
 \item A container can store $l \geq 1$ traces, representing an entire or a
       partial data set; $\delta$ specifies the offset of said traces within 
-      a data set of $\lamba$ in total.  Each trace is padded, if necessary, 
+      a data set of $\lambda$ in total.  Each trace is padded, if necessary, 
       meaning each one includes the same number (namely $n$) of samples.
 \item A container uses either dense or sparse sample format.  As such, it 
       stores either
@@ -129,7 +137,7 @@ specification that allows a simple form of extensibility.
       \[
       T_i \in \left\{
               \begin{array}{c@{\;}c@{\;}cl}
-              {\mathcal T}^m &                     & \mbox{for a dense  container} \\
+              {\mathcal T}^m &      &              & \mbox{for a dense  container} \\
               {\mathcal T}^m &\times& {\mathcal Z} & \mbox{for a sparse container} \\
               \end{array}
               \right.
@@ -168,12 +176,21 @@ specification that allows a simple form of extensibility.
       managed entirely by the user.
 \end{itemize}
 
+% -----------------------------------------------------------------------------
+
+\subsection{Concrete}
+
 % =============================================================================
 
-% example use-cases
-% - power analysis traces
-% - execution timings (e.g., for a cache-based attack)
-% - network traffic capture
+\section{Installation and use}
+
+% - requirements
+% - installation
+% - file extension
+% - example use-cases
+%   - power analysis traces
+%   - execution timings (e.g., for a cache-based attack)
+%   - network traffic capture
 
 % =============================================================================
 

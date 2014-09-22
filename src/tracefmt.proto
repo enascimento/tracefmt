@@ -1,7 +1,8 @@
 enum Type {
-  INT    = 1;
-  FLOAT  = 2;
-  DOUBLE = 3;
+  INT32  = 1;
+  INT64  = 2;
+  FLOAT  = 3;
+  DOUBLE = 4;
 }
 
 enum Unit {
@@ -20,21 +21,22 @@ enum Order  {
 
 message Value {
   oneof data {
-    int    i = 1;
-    float  f = 2;
-    double d = 3;
+    uint32 i32 = 1;
+    uint32 i64 = 2;
+    float  f   = 3;
+    double d   = 4;
   }
 }
 
 message Sample {
   repeated Value   value = 1;
-  optional int     index = 2;
+  optional uint32  index = 2;
 }
 
 message Meta {
   required bytes     key = 1;
   required bytes   value = 2;
-  optional int     index = 3;
+  optional uint32  index = 3;
 }
 
 message Axis {
@@ -47,12 +49,12 @@ message Axis {
 }
 
 message Container {
-  required int    version_major =  1;
-  required int    version_minor =  2;
+  required uint32 version_major =  1;
+  required uint32 version_minor =  2;
 
-  required int    trace_count   =  3;
-  required int    trace_length  =  4;
-  optional int    trace_offset  =  5;
+  required uint32 trace_count   =  3;
+  required uint32 trace_length  =  4;
+  optional uint32 trace_offset  =  5;
 
   required Format format        =  6;
   required Order  order         =  7;
