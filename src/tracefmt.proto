@@ -1,12 +1,17 @@
 enum Type {
-  INT32  = 1;
-  INT64  = 2;
-  FLOAT  = 3;
-  DOUBLE = 4;
+  INT8    = 1;
+  INT16   = 2;
+  INT32   = 3;
+  INT64   = 4;
+
+  FLOAT32 = 5;
+  FLOAT64 = 6;
 }
 
 enum Unit {
   SECOND = 1;
+  CYCLE  = 2;
+  VOLT   = 3;
 }
 
 enum Format {
@@ -21,15 +26,18 @@ enum Order  {
 
 message Value {
   oneof data {
-    uint32 i32 = 1;
-    uint32 i64 = 2;
-    float  f   = 3;
-    double d   = 4;
+    uint32 i8  = 1;
+    uint32 i16 = 2;
+    uint32 i32 = 3;
+    uint32 i64 = 4;
+
+    float  f32 = 5;
+    double f64 = 6;
   }
 }
 
 message Sample {
-  repeated Value   value = 1;
+  required Value   value = 1;
   optional uint32  index = 2;
 }
 
@@ -49,8 +57,8 @@ message Axis {
 }
 
 message Container {
-  required uint32 version_major =  1;
-  required uint32 version_minor =  2;
+  optional uint32 version_major =  1 [default = 0];
+  optional uint32 version_minor =  2 [default = 1];
 
   required uint32 trace_count   =  3;
   required uint32 trace_length  =  4;

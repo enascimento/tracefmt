@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 tracefmt.pdf : tracefmt.tex
 	@@for ITERATIONS in `seq 3` ; do   \
             pdflatex ${<}           ;      \
@@ -6,8 +8,8 @@ tracefmt.pdf : tracefmt.tex
 all      : tracefmt.pdf
 
 clean    :
-	@rm -f $(addprefix tracefmt, .aux .log)
+	@rm -f tracefmt.{aux,bbl,blg,log}
 
 spotless : clean
-	@rm -f $(addprefix tracefmt,      .pdf)
+	@rm -f tracefmt.pdf
 

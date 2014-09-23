@@ -1,6 +1,11 @@
 \documentclass[10pt,a4paper]{llncs}
 
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+
 \title{{\tt tracefmt}: a standard container format for side-channel data sets}
+\subtitle{Version $0.1$}
 \author{J. Longo Galea \and L. Mather \and D. Page}
 \institute{
 Department of Computer Science, University of Bristol,\\
@@ -8,6 +13,8 @@ Merchant Venturers Building, Woodland Road,\\
 Bristol, BS8 1UB, United Kingdom.\\
 \email{\{Jake.Longo,Luke.Mather,Daniel.Page\}@bristol.ac.uk}
 }
+
+\newcommand{\VERB}[1]{\mbox{\lstinline[basicstyle=\tt]{#1}}}
 
 \begin{document}
 
@@ -113,7 +120,7 @@ the implementation.
       \[
       T = \langle T_0, T_1, \ldots, T_{n-1} \rangle
       \]
-      is an $l$-element sequence of samples, with $T_i$ denoting the $i$-th 
+      is an $n$-element sequence of samples, with $T_i$ denoting the $i$-th 
       such element; the index $i$ is a measure of time.
 \item A container can store $l \geq 1$ traces, representing an entire or a
       partial data set; $\delta$ specifies the offset of said traces within 
@@ -123,11 +130,11 @@ the implementation.
       stores either
 
       \begin{enumerate}      
-      \item raw sample values (wrt. the y-axis) each of whose offset along 
+      \item raw sample values (wrt. the y-axis) each of whose index along 
             the x-axis is implicit (i.e., a function of $i$ wrt. an axis 
             definition),
             or
-      \item raw sample values {\em plus} explicit associated offsets along 
+      \item raw sample values {\em plus} explicit associated index along 
             the x-axis (i.e., irrespective of $i$)
       \end{enumerate}      
 
@@ -137,8 +144,8 @@ the implementation.
       \[
       T_i \in \left\{
               \begin{array}{c@{\;}c@{\;}cl}
-              {\mathcal T}^m &      &              & \mbox{for a dense  container} \\
-              {\mathcal T}^m &\times& {\mathcal Z} & \mbox{for a sparse container} \\
+              {\mathcal T}^m &      &             & \mbox{for a dense  container} \\
+              {\mathcal T}^m &\times& {\mathbb Z} & \mbox{for a sparse container} \\
               \end{array}
               \right.
       \]
@@ -179,6 +186,57 @@ the implementation.
 % -----------------------------------------------------------------------------
 
 \subsection{Concrete}
+
+\begin{itemize}
+\item \VERB{Container.version_major}
+      and
+      \VERB{Container.version_minor}
+      hold a major and minor version number for the specification which was
+      used to produce the container: in {\sf ProtocolBuffers} there appears
+      to be no automatic way to manage the values held (e.g., a constant as
+      supported by {\sf Thrift}), bar having default values.  Either way,
+      the aim is to allow identification of the version, and guarantee that
+      specifications are compatible with each other iff. they share a major
+      version number.  
+\item \VERB{Container.trace_count}
+      and
+      \VERB{Container.trace_length}
+      are essentially $l$ and $n$ from the abstract description, i.e., the
+      number and length of traces stored in the container;
+      \VERB{Container.trace_offset} 
+      holds $\delta$, which specifies the offset of said traces within some
+      larger data set.
+\item \VERB{Container.format}
+      holds an element from the enumerate type \VERB{Format}, 
+      dictating whether samples use a sparse or dense representation.
+\item \VERB{Container.order}
+      holds an element from the enumerate type \VERB{Order}, 
+      dictating whether samples are stored in trace- or sample-major order.
+\item \VERB{Container.meta}
+      is the key-value meta-data, holding instances of the \VERB{Meta} 
+      message (which in turn captures the key, value and optional index).
+\item \VERB{Container.axis_x}
+      and
+      \VERB{Container.axis_y}
+      parameterise the x-axis and y-axis as follows:
+
+      \begin{itemize}
+      \item The x-axis is specified using        $1$ instance  of the 
+            \VERB{Axis} message, controlling what sample indices mean.
+      \item The y-axis is specified using $m \geq 1$ instances of the 
+            \VERB{Axis} message, controlling what sample values  mean.
+      \end{itemize}
+
+      \noindent
+      Each instance of \VERB{Axis} includes a data type field (to hold the
+      concrete value, i.e., one component of the $m$-element tuple), and a 
+      unit specification (to indicate what units the value is measured in);
+      optional minimum, maximum and offset values help to disambiguate the
+      scale etc.
+\item \VERB{Container.samples}
+      is essentially $S$ from the abstract description, i.e., the sequence
+      of stored samples.
+\end{itemize}
 
 % =============================================================================
 
